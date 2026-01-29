@@ -1,6 +1,6 @@
 <div align="center">
    <picture>
-      <img src="./" width="150" height="150">
+      <img src="./assets/nebulashade_icon.png" width="150" height="150">
    </picture>
    <h2>NebulaShade</h2>
 </div>
