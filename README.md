@@ -56,11 +56,11 @@ It bridges **design + automation + system configuration** into one unified tool.
 ## 📸 Screenshot Previews
 
 <div align="center">
-  <img src="./assets/screenshot1.png" width="45%" />
-  <img src="./assets/screenshot2.png" width="45%" />
+  <img src="./readme/1.png" width="45%" />
+  <img src="./readme/6.png" width="45%" />
   <br/><br/>
-  <img src="./assets/screenshot3.png" width="45%" />
-  <img src="./assets/screenshot4.png" width="45%" />
+  <img src="./readme/7.png" width="45%" />
+  <img src="./readme/5.png" width="45%" />
 </div>
 
 ---
