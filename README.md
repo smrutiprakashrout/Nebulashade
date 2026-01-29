@@ -1,6 +1,6 @@
 <div align="center">
    <picture>
-      <img src="./release/Debian/devnest_1.0_arm64/usr/share/icons/hicolor/512x512/apps/devnest.png" width="150" height="150">
+      <img src="./" width="150" height="150">
    </picture>
    <h2>NebulaShade</h2>
 </div>
@@ -46,7 +46,7 @@ It bridges **design + automation + system configuration** into one unified tool.
 ## 🖼️ Demo Preview
 
 <div align="center">
-  <img src="./assets/demo.png" width="80%" alt="NebulaShade Demo" />
+  <img src="./readme/nebulashade.png" width="80%" alt="NebulaShade Demo" />
 </div>
 
 > *Demo image showing the NebulaShade customization interface.*
