@@ -23,26 +23,6 @@
 
 ---
 
-## 🚀 Vision
-
-To create a **unified Linux customization platform** where theming, UI design, system styling, and automation work together seamlessly — enabling users to personalize their system with a single click.
-
----
-
-## 🌌 Core Concept
-
-NebulaShade acts as a **central customization layer** for Linux that provides:
-
-* Visual theming
-* System-wide personalization
-* Dynamic color adaptation
-* UI/UX consistency
-* Automated configuration
-
-It bridges **design + automation + system configuration** into one unified tool.
-
----
-
 ## 🖼️ Demo Preview
 
 <div align="center">
@@ -62,6 +42,26 @@ It bridges **design + automation + system configuration** into one unified tool.
   <img src="./readme/7.png" width="45%" />
   <img src="./readme/5.png" width="45%" />
 </div>
+
+---
+
+## 🚀 Vision
+
+To create a **unified Linux customization platform** where theming, UI design, system styling, and automation work together seamlessly — enabling users to personalize their system with a single click.
+
+---
+
+## 🌌 Core Concept
+
+NebulaShade acts as a **central customization layer** for Linux that provides:
+
+* Visual theming
+* System-wide personalization
+* Dynamic color adaptation
+* UI/UX consistency
+* Automated configuration
+
+It bridges **design + automation + system configuration** into one unified tool.
 
 ---
 
