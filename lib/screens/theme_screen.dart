@@ -176,8 +176,9 @@ class _ThemeScreenState extends State<ThemeScreen> {
       if (!await imageFile.exists()) return;
 
       final paletteGenerator = await PaletteGenerator.fromImageProvider(
-        FileImage(imageFile),
-        maximumColorCount: 9, // Get 7 dominant colors
+        ResizeImage(FileImage(imageFile), width: 100, height: 100),
+        maximumColorCount: 9,
+        size: const Size(100, 100),
       );
 
       setState(() {
