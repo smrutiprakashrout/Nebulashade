@@ -34,7 +34,7 @@
 
 ---
 
-## 🖼️ Demo Preview
+## Screenshots Preview
 
 <div align="center">
   <img src="./readme/nebulashade.png" width="80%" alt="NebulaShade Demo" />
@@ -42,292 +42,123 @@
 
 > *Demo image showing the NebulaShade customization interface.*
 
----
+## ✨ What is NebulaSeed?
 
-## 📸 Screenshot Previews
+NebulaSeed brings **intelligent, wallpaper-aware theming** to Linux. Set a wallpaper, and NebulaSeed automatically derives a cohesive color palette from it — propagating that palette across your GTK apps, GNOME Shell, icon packs, file manager icons, desktop widgets, and more.
 
-<div align="center">
-  <img src="./readme/1.png" width="45%" />
-  <img src="./readme/6.png" width="45%" />
-  <br/><br/>
-  <img src="./readme/7.png" width="45%" />
-  <img src="./readme/5.png" width="45%" />
-</div>
+Think of it as **Material You for Linux** — but deeper, more customizable, and designed for power users who care about every pixel of their desktop.
+
+> ✅ Tested on **Everforest** theme + **Colloid** icon pack — full compatibility confirmed.
 
 ---
 
-## 🚀 Vision
+## 🚀 Core Features
 
-To create a **unified Linux customization platform** where theming, UI design, system styling, and automation work together seamlessly — enabling users to personalize their system with a single click.
+### Dynamic Wallpaper-Driven Theming
+Set a wallpaper. NebulaSeed does the rest.  
+Colors are extracted from your wallpaper and applied globally — across GTK apps, the GNOME Shell, notification panel, settings pages, and more. No manual tweaking. Just a living, breathing desktop that always feels coherent.
 
----
+### File Manager Icon Theming
+NebulaSeed goes beyond apps. It recolors **file icons inside the native file manager** to match your current wallpaper palette — so even your filesystem feels like part of the design system.
 
-## 🌌 Core Concept
+### Custom Desktop Widgets
+A built-in widget layer for your desktop, including:
+- **Conky setter** — configure and apply Conky widgets with a single click
+- **ucon key setter** — manage icon key bindings visually
+- One-click apply — go from a bland desktop to a polished, professional setup instantly
 
-NebulaShade acts as a **central customization layer** for Linux that provides:
+### 🛍️ Built-in Marketplace
+Browse and install from a curated marketplace directly inside NebulaSeed:
+- **Icon packs**
+- **Cursor themes**
+- **GTK / Shell themes**
+- **Gnome Extension**
 
-* Visual theming
-* System-wide personalization
-* Dynamic color adaptation
-* UI/UX consistency
-* Automated configuration
+Everything managed in one place. No hunting through external sites.
 
-It bridges **design + automation + system configuration** into one unified tool.
-
----
-
-## ✨ Key Features (Professional Overview)
-
-NebulaShade is designed as a **production-grade Linux customization platform** that combines system automation, UI engineering, and desktop personalization into a single unified application.
-
-It provides:
-
-* Enterprise-level system theming
-* Automated configuration pipelines
-* Cross-layer UI consistency
-* Scalable customization architecture
-* User-centric design workflows
+### 🧩 Unified Theme Manager
+NebulaSeed is the single control panel for your entire desktop aesthetic:
+- Switch themes, icon packs, cursors, and wallpapers
+- Preview changes before applying
+- Manage installed assets in one unified interface
 
 ---
 
-## 🧩 Customization Modules (All Options)
+## 🛠️ Tech Stack
 
-### 🎨 Theme Management
-
-* Global system themes
-* GTK 3 / GTK 4 themes
-* GNOME Shell themes
-* Dark/Light mode toggle
-* Adaptive themes
-* Per-app theming
-
-### 🖼 Icons
-
-* System icon packs
-* App icon customization
-* Adaptive icon mapping
-* Cross-theme icon compatibility
-
-### ⚙️ Config
-
-* System configuration profiles
-* Preset configurations
-* Environment-based configs
-* Profile switching
-
-### 🔤 Fonts
-
-* Global font control
-* App-level fonts
-* UI fonts
-* Developer fonts
-* Rendering optimization
-
-### 🖱 Cursors
-
-* Cursor theme management
-* DPI scaling
-* Accessibility cursors
-
-### 🔊 Sound
-
-* System sound themes
-* Notification sounds
-* UI interaction sounds
-* Profile-based sound configs
-
-### ⌨️ Hotkeys
-
-* Global shortcuts
-* Custom key bindings
-* Workflow automation shortcuts
-* Productivity mappings
-
-### 🧱 Widgets
-
-* Desktop widgets
-* System monitors
-* Productivity widgets
-* Custom widget modules
-
-### 🪟 Windows
-
-* Window manager configs
-* Animation settings
-* Layout controls
-* Workspace management
-
-### 🧩 Extensions
-
-* GNOME extensions management
-* Extension automation
-* Extension profiles
-* Compatibility handling
-
-### ⚙️ Settings
-
-* Global system settings
-* User preferences
-* Performance tuning
-* Resource optimization
-
-### ℹ️ About
-
-* System metadata
-* Versioning
-* Build information
-* Platform diagnostics
-
----
-
-* 🎨 **One-Click System Personalization**
-  Apply complete system themes instantly
-
-* 🌈 **Dynamic Color Palette Generation**
-  Auto-generate adaptive color schemes
-
-* 🧠 **Smart Theme Adaptation**
-  UI adapts based on wallpaper and system colors
-
-* 🖥️ **GNOME Integration**
-  Native GNOME customization support
-
-* ⚙️ **System Automation**
-  Automated configuration using scripts
-
-* 🧩 **Modular Customization Engine**
-  Component-based personalization system
-
-* 🧬 **Ecosystem Design**
-  Unified theming across apps, shell, and system
-
----
-
-## 🧠 Architecture Overview
-
-```text
-[ Flutter UI Layer ]
-        │
-        │
-[ Customization Engine ]
-        │
-        │
-[ Automation Layer ]
- (Python + Bash)
-        │
-        │
-[ Linux System Layer ]
- (GNOME + System Configs)
-```
-
----
-
-## 🛠️ Technologies
-
-| Layer           | Technologies           |
-| --------------- | ---------------------- |
-| Platform        | Linux                  |
-| UI              | Flutter                |
-| Desktop         | GNOME                  |
-| Automation      | Python, Bash Scripting |
-| Design          | UI/UX Design           |
-| System Control  | Linux System APIs      |
-| Personalization | Dynamic Theming Engine |
-
----
-
-## 🔧 Capabilities
-
-* Global theme management
-* Icon pack control
-* Font customization
-* Cursor theming
-* Wallpaper adaptation
-* GTK theme control
-* GNOME shell theming
-* Accent color generation
-* System UI consistency
-* Script-based automation
-
----
-
-## 🎯 Use Cases
-
-* Full system theming in one click
-* Developer desktop personalization
-* Designer-focused Linux setups
-* Automated desktop styling
-* Distribution customization tools
-* Personal Linux ecosystem creation
+| Layer | Technology |
+|---|---|
+| UI Framework | Flutter / Dart |
+| Desktop Target | GNOME (Wayland) |
+| Theme Engine | GTK3 / GTK4 |
+| Shell Integration | GNOME Shell / GSettings |
+| Widget Layer | Conky |
+| Icon Protocol | Freedesktop Icon Spec |
 
 ---
 
 ## 📦 Installation
 
+> ⚠️ **NebulaSeed is not yet released.** Installation instructions will be published here upon first stable release.
+
+If you'd like to build from source for development/testing:
+
 ```bash
-# Clone repository
-git clone <repo-link>
-cd nebulashade
+# Clone the repository
+git clone https://github.com/smrutiprakashrout/nebulaseed.git
+cd nebulaseed
 
-# Install dependencies
-bash install.sh
+# Install Flutter dependencies
+flutter pub get
 
-# Run application
-flutter run
+# Run on Linux desktop
+flutter run -d linux
 ```
 
----
-
-## ▶️ Usage Flow
-
-1. Launch NebulaShade
-2. Select personalization mode
-3. Choose theme or wallpaper
-4. Generate dynamic palette
-5. Apply system customization
-6. System updates automatically
+> **Requirements:** Flutter 3.x+, GNOME desktop, GTK 3/4
 
 ---
 
-## 🧭 Project Positioning
+## 🗺️ Roadmap
 
-NebulaShade functions as a:
-
-* 🎨 **Linux Personalization Engine**
-* 🌌 **Customization Ecosystem**
-* 🧠 **System Styling Layer**
-* ⚙️ **Automation Platform**
-* 🖥️ **Desktop Experience Manager**
+- [x] Wallpaper color extraction engine
+- [x] GTK app theming pipeline
+- [x] GNOME Shell background theming
+- [x] File manager icon recoloring
+- [x] Everforest + Colloid icon pack support
+- [x] Accent color derivation from vibrant hue clusters
+- [x] GTK sidebar / main area color consistency
+- [ ] Marketplace (icons, cursors, themes)
+- [ ] Desktop widget layer (Conky + ucon)
+- [ ] One-click desktop profile apply
+- [ ] Public v1.0 release
 
 ---
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a branch
+NebulaSeed is **not accepting external contributions yet** while core architecture is being finalized.  
+Once the project reaches a stable foundation, contribution guidelines will be published.  
 
-   ```bash
-   git checkout -b feature-name
-   ```
-3. Commit changes
+**Star the repo** to get notified when it opens up. ⭐
 
-   ```bash
-   git commit -m "Add feature"
-   ```
-4. Push branch
+---
 
-   ```bash
-   git push origin feature-name
-   ```
-5. Open Pull Request
+## 🧑‍💻 Author
+
+**Smruti Prakash Rout**  
+Full-stack developer · Linux systems engineer · Open source builder  
+
+[![GitHub](https://img.shields.io/badge/GitHub-smrutiprakashrout-181717?style=flat-square&logo=github)](https://github.com/smrutiprakashrout)
 
 ---
 
 ## 📄 License
 
-MIT License
+MIT License — see [LICENSE](./LICENSE) for details.
 
 ---
 
-
-> NebulaShade is a complete Linux personalization ecosystem — where design meets automation.
+<p align="center">
+  <sub>Built with 💙 for the Linux desktop community</sub>
+</p>
