@@ -1,3 +1,5 @@
+> **🚧 Maintenance Mode — Not yet ready for public release. Active development in progress.**
+
 <div align="center">
    <picture>
       <img src="./assets/nebulashade_icon.png" width="150" height="150">
@@ -11,15 +13,24 @@
 ![Static Badge](https://img.shields.io/badge/License-MIT-yellow)
 ![Static Badge](https://img.shields.io/badge/Total_Lines-86k-red)
 
-| Advanced Linux Customization Suite |
-|-----------------------------------------|
+| **Dynamic GNOME Desktop** | **System-Wide Global Themeing** | **Polished User Experience** |
+|:---:|:---:|:---:|
+
 </div>
 
+---
 
+**NebulaShade** is a powerful Linux customization engine designed to bring harmony to your workspace. By dynamically extracting color palettes from your wallpaper, it applies a cohesive, global theme across your entire desktop environment. Built for the modern Linux user, it bridges the gap between static configurations and a truly personalized, living OS.
 
-**NebulaShade** is a modern Linux customization ecosystem designed to deliver **one-click system personalization**, dynamic theming, and adaptive color generation. It transforms Linux desktops into a fully personalized, visually consistent, and automated environment through a clean UI and powerful automation backend.
+> **NebulaShade:** Because your desktop should be as dynamic as your inspiration.
 
-> NebulaShade is not just a theme manager — it’s a **Linux personalization ecosystem**.
+### 🌟 Key Highlights
+
+* **🎨 Dynamic Color Sync:** Your system accents evolve automatically with your wallpaper.
+* **🌍 System-Wide Integration:** Applies themes to GNOME Shell, GTK4/3, and terminal emulators.
+* **🏪 Nebula Marketplace:** A community-driven hub to discover, download, and share custom presets.
+* **🎛 Granular Control:** Fully adjustable parameters for users who want to fine-tune every hex code.
+
 
 ---
 

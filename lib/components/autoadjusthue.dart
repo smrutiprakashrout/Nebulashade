@@ -27,43 +27,23 @@ Future<void> automaticColorAdjustment(String targetHexCode) async {
   // print("Target hue: $targetHue");
 
   try {
-    // Process each CSS file individually
-    for (var path in filePaths) {
+    // All files processed in parallel — no sequential awaits
+    await Future.wait(filePaths.map((path) async {
       final file = File(path);
-      if (await file.exists()) {
-        // print("Processing file: $path");
-        String fileContent = await file.readAsString();
-        
-        // Extract colors from current file
-        final colorCodes = _extractColorsFromContent(fileContent);
-        if (colorCodes.isEmpty) {
-          // print("No colors found in file: $path");
-          continue;
+      if (!await file.exists()) return;
+      String fileContent = await file.readAsString();
+      final colorCodes = _extractColorsFromContent(fileContent);
+      if (colorCodes.isEmpty) return;
+      final double averageHue = _calculateAverageHue(colorCodes);
+      final double hueShift = _calculateHueShift(targetHue, averageHue);
+      for (String colorCode in colorCodes) {
+        final shiftedColor = _shiftHuePreservingFormat(colorCode, hueShift);
+        if (colorCode != shiftedColor) {
+          fileContent = fileContent.replaceAll(colorCode, shiftedColor);
         }
-
-        // Calculate average hue of the current file's colors properly
-        final double averageHue = _calculateAverageHue(colorCodes);
-        // print("Average hue for $path: $averageHue");
-
-        // Calculate hue shift (using proper circular math)
-        final double hueShift = _calculateHueShift(targetHue, averageHue);
-        // print("Hue shift amount: $hueShift");
-
-        // Replace all color codes in file
-        for (String colorCode in colorCodes) {
-          final shiftedColor = _shiftHuePreservingFormat(colorCode, hueShift);
-          if (colorCode != shiftedColor) {
-            fileContent = fileContent.replaceAll(colorCode, shiftedColor);
-          }
-        }
-
-        // Write updated content back to file
-        await file.writeAsString(fileContent);
-        // print("Updated file: $path");
-      } else {
-        // print("File does not exist: $path");
       }
-    }
+      await file.writeAsString(fileContent);
+    }));
     
     // print("Color adjustment completed successfully!");
   } catch (e) {

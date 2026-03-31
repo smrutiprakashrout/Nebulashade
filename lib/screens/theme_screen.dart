@@ -1044,16 +1044,15 @@ class _ImageRowScrollerState extends State<ImageRowScroller> {
           'Wallpaper set successfully!'
         ]);
 
-        // ...notifications...
+        // Step 1: update wallpaper display + extract fresh palette from new wallpaper.
+        // Must complete first so currentShades has the NEW colors.
         await widget.onWallpaperChanged(path);
 
-        // Wait a bit to ensure parent state is updated
-        await Future.delayed(Duration(milliseconds: 100));
-
-        // Get the latest shades directly from parent
-        List<String> latestShades = widget.getCurrentShades();
-        // print("print after -> $latestShades");
-        await quickapplyTheme(latestShades[1]);
+        // Step 2: apply theme using the freshly extracted shades.
+        final List<String> freshShades = widget.getCurrentShades();
+        if (freshShades.isNotEmpty) {
+          await quickapplyTheme(freshShades[1]);
+        }
         widget.onThemechange(false);
       } else {
         throw Exception("gsettings failed");

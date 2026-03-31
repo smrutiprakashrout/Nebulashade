@@ -1,392 +1,82 @@
 import 'dart:io';
-// import 'package:flutter/material.dart';
 import 'package:nebulashade/components/autoadjusthue.dart';
+import 'package:nebulashade/components/apply_theme.dart';
+import 'package:nebulashade/constants/colours.dart';
+
 List<String> colorCodes = [];
 List<String> modifiedColorCodes = [];
 List<int> selectedIndexes = [];
 double hueShift = 0;
 String originalCssContent = '';
 
-Future<void> quickapplyTheme(
-  String hexColor
-  // BuildContext context,
-  // List<String> filePaths,
-  // Future<void> Function() updateCssFileCallback,
-) async {
-  // if (!context.mounted) return;
-  // Navigator.pop(context);
-  // await updateCssFileCallback();
-  automaticColorAdjustment(hexColor);
+Future<void> quickapplyTheme(String hexColor) async {
+  final home = Platform.environment['HOME']!;
+
   final List<String> filePaths = [
-    '${Platform.environment['HOME']}/.themes/Everforest-Dark-Soft-Adaptive/gtk-4.0/gtk.css',
-    '${Platform.environment['HOME']}/.themes/Everforest-Dark-Soft-Adaptive/gtk-4.0/gtk-dark.css',
-    '${Platform.environment['HOME']}/.themes/Everforest-Dark-Soft-Adaptive/gtk-3.0/gtk.css',
-    '${Platform.environment['HOME']}/.themes/Everforest-Dark-Soft-Adaptive/gtk-3.0/gtk-dark.css',
-    '${Platform.environment['HOME']}/.themes/Everforest-Dark-Soft-Adaptive/gnome-shell/gnome-shell.css',
-    '${Platform.environment['HOME']}/.themes/Everforest-Dark-Soft-Adaptive/gnome-shell/pad-osd.css',
-    '${Platform.environment['HOME']}/.config/gtk-4.0/gtk.css',
-    '${Platform.environment['HOME']}/.config/gtk-4.0/gtk-dark.css',
+    '$home/.themes/Everforest-Dark-Soft-Adaptive/gtk-4.0/gtk.css',
+    '$home/.themes/Everforest-Dark-Soft-Adaptive/gtk-4.0/gtk-dark.css',
+    '$home/.themes/Everforest-Dark-Soft-Adaptive/gtk-3.0/gtk.css',
+    '$home/.themes/Everforest-Dark-Soft-Adaptive/gtk-3.0/gtk-dark.css',
+    '$home/.themes/Everforest-Dark-Soft-Adaptive/gnome-shell/gnome-shell.css',
+    '$home/.themes/Everforest-Dark-Soft-Adaptive/gnome-shell/pad-osd.css',
+    '$home/.config/gtk-4.0/gtk.css',
+    '$home/.config/gtk-4.0/gtk-dark.css',
   ];
-  // Define new random or static colors
-  final newMinimizeColor = "#e69875";
-  final newMaximizeColor = "#a7c080";
-  final newCloseColor = "#e67e80";
 
-  for (var path in filePaths) {
+  // Constant button colors - never shift with the hue adjustment
+  const minimize = '#e69875';
+  const maximize = '#a7c080';
+  const close    = '#e67e80';
+
+  // Step 1: hue shift all files first — must complete before step 2.
+  // automaticColorAdjustment rewrites every color, so running concurrently
+  // would clobber the button colors we apply in step 2.
+  await automaticColorAdjustment(hexColor);
+
+  // Step 2: patch button colors on top of the hue-shifted files, in parallel.
+  await Future.wait(filePaths.map((path) async {
     final file = File(path);
-    if (await file.exists()) {
-      // minimize
-      await Process.run('bash', [
-        '-c',
-        '''
-        awk '
-        BEGIN { in_block=0 }
-        /windowcontrols button.minimize:not\\(.suggested-action\\):not\\(.destructive-action\\)/ { in_block=1 }
-        in_block && /}/ { in_block=0 }
-        in_block && /background-color:/ {
-        sub(/background-color: .*/, "background-color: $newMinimizeColor;");
-        }
-        { print }
-        ' "$path" > "$path.tmp" && mv "$path.tmp" "$path"
-        '''
-      ]);
-      await Process.run('bash', [
-        '-c',
-        '''
-        awk '
-        BEGIN { in_block=0 }
-        /windowcontrols button.minimize:hover:not\\(.suggested-action\\):not\\(.destructive-action\\)/ { in_block=1 }
-        in_block && /}/ { in_block=0 }
-        in_block && /background-color:/ {
-        sub(/background-color: .*/, "background-color: shade($newMinimizeColor, 0.4);");
-        }
-        { print }
-        ' "$path" > "$path.tmp" && mv "$path.tmp" "$path"
-        '''
-      ]);
-      await Process.run('bash', [
-        '-c',
-        '''
-        awk '
-        BEGIN { in_block=0 }
-        /windowcontrols button.minimize:active:not\\(.suggested-action\\):not\\(.destructive-action\\)/ { in_block=1 }
-        in_block && /}/ { in_block=0 }
-        in_block && /background-color:/ {
-        sub(/background-color: .*/, "background-color: shade($newMinimizeColor, 0.6);");
-        }
-        { print }
-        ' "$path" > "$path.tmp" && mv "$path.tmp" "$path"
-        '''
-      ]);
-      // maximize------------------------
-      await Process.run('bash', [
-        '-c',
-        '''
-        awk '
-        BEGIN { in_block=0 }
-        /windowcontrols button.maximize:not\\(.suggested-action\\):not\\(.destructive-action\\)/ { in_block=1 }
-        in_block && /}/ { in_block=0 }
-        in_block && /background-color:/ {
-        sub(/background-color: .*/, "background-color: $newMaximizeColor;");
-        }
-        { print }
-        ' "$path" > "$path.tmp" && mv "$path.tmp" "$path"
-        '''
-      ]);
-      await Process.run('bash', [
-        '-c',
-        '''
-        awk '
-        BEGIN { in_block=0 }
-        /windowcontrols button.maximize:hover:not\\(.suggested-action\\):not\\(.destructive-action\\)/ { in_block=1 }
-        in_block && /}/ { in_block=0 }
-        in_block && /background-color:/ {
-        sub(/background-color: .*/, "background-color:shade($newMaximizeColor, 0.4);");
-        }
-        { print }
-        ' "$path" > "$path.tmp" && mv "$path.tmp" "$path"
-        '''
-      ]);
-      await Process.run('bash', [
-        '-c',
-        '''
-        awk '
-        BEGIN { in_block=0 }
-        /windowcontrols button.maximize:active:not\\(.suggested-action\\):not\\(.destructive-action\\)/ { in_block=1 }
-        in_block && /}/ { in_block=0 }
-        in_block && /background-color:/ {
-        sub(/background-color: .*/, "background-color:shade($newMaximizeColor, 0.6) ;");
-        }
-        { print }
-        ' "$path" > "$path.tmp" && mv "$path.tmp" "$path"
-        '''
-      ]);
-      // close-----------------------------------
-      await Process.run('bash', [
-        '-c',
-        '''
-        awk '
-        BEGIN { in_block=0 }
-        /windowcontrols button.close:not\\(.suggested-action\\):not\\(.destructive-action\\)/ { in_block=1 }
-        in_block && /}/ { in_block=0 }
-        in_block && /background-color:/ {
-        sub(/background-color: .*/, "background-color: $newCloseColor;");
-        }
-        { print }
-        ' "$path" > "$path.tmp" && mv "$path.tmp" "$path"
-        '''
-      ]);
-      await Process.run('bash', [
-        '-c',
-        '''
-        awk '
-        BEGIN { in_block=0 }
-        /windowcontrols button.close:hover:not\\(.suggested-action\\):not\\(.destructive-action\\)/ { in_block=1 }
-        in_block && /}/ { in_block=0 }
-        in_block && /background-color:/ {
-        sub(/background-color: .*/, "background-color: shade($newCloseColor, 0.4);");
-        }
-        { print }
-        ' "$path" > "$path.tmp" && mv "$path.tmp" "$path"
-        '''
-      ]);
-      await Process.run('bash', [
-        '-c',
-        '''
-        awk '
-        BEGIN { in_block=0 }
-        /windowcontrols button.close:active:not\\(.suggested-action\\):not\\(.destructive-action\\)/ { in_block=1 }
-        in_block && /}/ { in_block=0 }
-        in_block && /background-color:/ {
-        sub(/background-color: .*/, "background-color: shade($newCloseColor, 0.6);");
-        }
-        { print }
-        ' "$path" > "$path.tmp" && mv "$path.tmp" "$path"
-        '''
-      ]);
+    if (!await file.exists()) return;
+    final css = await file.readAsString();
+    final patched = applyButtonColors(
+        css, minimize: minimize, maximize: maximize, close: close);
+    if (patched != css) await file.writeAsString(patched);
+  }));
 
-      // gtk 3
-      // ==============Close=================================================
-      await Process.run('bash', [
-        '-c',
-        '''
-        awk '
-        BEGIN { in_block=0 }
-        /windowcontrols button.close:active:not\\(.suggested-action\\):not\\(.destructive-action\\)/ { in_block=1 }
-        in_block && /}/ { in_block=0 }
-        in_block && /background-color:/ {
-        sub(/background-color: .*/, "background-color: shade($newCloseColor, 0.6);");
-        }
-        { print }
-        ' "$path" > "$path.tmp" && mv "$path.tmp" "$path"
+  // Reload shell theme and gtk theme — use sed to strip quotes instead of tr -d
+  // to avoid single-quote escaping issues in Dart string literals.
+  final shellTheme = (await Process.run('gsettings',
+          ['get', 'org.gnome.shell.extensions.user-theme', 'name']))
+      .stdout
+      .toString()
+      .trim()
+      .replaceAll("'", '');
 
-        awk '
-        BEGIN { in_block=0 }
-        /button.close.titlebutton:not\\(.suggested-action\\):not\\(.destructive-action\\)/ { in_block=1 }
-        in_block && /}/ { in_block=0 }
-        in_block && /background-color:/ {
-        sub(/background-color: .*/, "background-color: $newCloseColor;");
-        }
-        { print }
-        ' "$path" > "$path.tmp" && mv "$path.tmp" "$path"
+  final gtkTheme = (await Process.run(
+          'gsettings', ['get', 'org.gnome.desktop.interface', 'gtk-theme']))
+      .stdout
+      .toString()
+      .trim()
+      .replaceAll("'", '');
 
-        awk '
-        BEGIN { in_block=0 }
-        /button.close.titlebutton:hover:not\\(.suggested-action\\):not\\(.destructive-action\\)/ { in_block=1 }
-        in_block && /}/ { in_block=0 }
-        in_block && /background-color:/ {
-        sub(/background-color: .*/, "background-color: shade($newCloseColor, 0.4);");
-        }
-        { print }
-        ' "$path" > "$path.tmp" && mv "$path.tmp" "$path"
+  // Toggle shell theme: Adwaita → original (forces GNOME Shell to reload CSS)
+  await Process.run('gsettings',
+      ['set', 'org.gnome.shell.extensions.user-theme', 'name', 'Adwaita']);
+  await Process.run('gsettings',
+      ['set', 'org.gnome.shell.extensions.user-theme', 'name', shellTheme]);
 
-        awk '
-        BEGIN { in_block=0 }
-        /button.close.titlebutton:active:not\\(.suggested-action\\):not\\(.destructive-action\\)/ { in_block=1 }
-        in_block && /}/ { in_block=0 }
-        in_block && /background-color:/ {
-        sub(/background-color: .*/, "background-color: shade($newCloseColor, 0.6);");
-        }
-        { print }
-        ' "$path" > "$path.tmp" && mv "$path.tmp" "$path"
+  // Toggle GTK theme: Adwaita → original (forces GTK apps to reload CSS)
+  await Process.run('gsettings',
+      ['set', 'org.gnome.desktop.interface', 'gtk-theme', 'Adwaita']);
+  await Process.run('gsettings',
+      ['set', 'org.gnome.desktop.interface', 'gtk-theme', gtkTheme]);
 
-        awk '
-        BEGIN { in_block=0 }
-        /\\.background\\.csd headerbar\\.titlebar\\.default-decoration button\\.close\\.titlebutton:hover:not\\(.suggested-action\\):not\\(.destructive-action\\)/ { in_block=1 }
-        in_block && /}/ { in_block=0 }
-        in_block && /background-color:/ {
-        sub(/background-color: .*/, "background-color: shade($newCloseColor, 0.4);");
-        }
-        { print }
-        ' "$path" > "$path.tmp" && mv "$path.tmp" "$path"
+  // Re-sync AppColors so app background matches the newly written CSS
+  AppColors.init();
 
-        awk '
-        BEGIN { in_block=0 }
-        /\\.background\\.csd headerbar\\.titlebar\\.default-decoration button\\.close\\.titlebutton:active:not\\(.suggested-action\\):not\\(.destructive-action\\)/ { in_block=1 }
-        in_block && /}/ { in_block=0 }
-        in_block && /background-color:/ {
-        sub(/background-color: .*/, "background-color: shade($newCloseColor, 0.6);");
-        }
-        { print }
-        ' "$path" > "$path.tmp" && mv "$path.tmp" "$path"
-        '''
-      ]);
-
-      // =================Minimize==========================================
-
-      await Process.run('bash', [
-        '-c',
-        '''
-        awk '
-        BEGIN { in_block=0 }
-        /button.minimize.titlebutton:not\\(.suggested-action\\):not\\(.destructive-action\\)/ { in_block=1 }
-        in_block && /}/ { in_block=0 }
-        in_block && /background-color:/ {
-        sub(/background-color: .*/, "background-color: $newMinimizeColor;");
-        }
-        { print }
-        ' "$path" > "$path.tmp" && mv "$path.tmp" "$path"
-
-        awk '
-        BEGIN { in_block=0 }
-        /button.minimize.titlebutton:hover:not\\(.suggested-action\\):not\\(.destructive-action\\)/ { in_block=1 }
-        in_block && /}/ { in_block=0 }
-        in_block && /background-color:/ {
-        sub(/background-color: .*/, "background-color: shade($newMinimizeColor, 0.4);");
-        }
-        { print }
-        ' "$path" > "$path.tmp" && mv "$path.tmp" "$path"
-
-        awk '
-        BEGIN { in_block=0 }
-        /button.minimize.titlebutton:active:not\\(.suggested-action\\):not\\(.destructive-action\\)/ { in_block=1 }
-        in_block && /}/ { in_block=0 }
-        in_block && /background-color:/ {
-        sub(/background-color: .*/, "background-color: shade($newMinimizeColor, 0.6);");
-        }
-        { print }
-        ' "$path" > "$path.tmp" && mv "$path.tmp" "$path"
-
-        awk '
-        BEGIN { in_block=0 }
-        /\\.background\\.csd headerbar\\.titlebar\\.default-decoration button\\.minimize\\.titlebutton:hover:not\\(.suggested-action\\):not\\(.destructive-action\\)/ { in_block=1 }
-        in_block && /}/ { in_block=0 }
-        in_block && /background-color:/ {
-        sub(/background-color: .*/, "background-color: shade($newMinimizeColor, 0.4);");
-        }
-        { print }
-        ' "$path" > "$path.tmp" && mv "$path.tmp" "$path"
-
-        awk '
-        BEGIN { in_block=0 }
-        /\\.background\\.csd headerbar\\.titlebar\\.default-decoration button\\.minimize\\.titlebutton:active:not\\(.suggested-action\\):not\\(.destructive-action\\)/ { in_block=1 }
-        in_block && /}/ { in_block=0 }
-        in_block && /background-color:/ {
-        sub(/background-color: .*/, "background-color: shade($newMinimizeColor, 0.6);");
-        }
-        { print }
-        ' "$path" > "$path.tmp" && mv "$path.tmp" "$path"
-        '''
-      ]);
-
-      // ===============Maximize==============================================
-      await Process.run('bash', [
-        '-c',
-        '''
-        awk '
-        BEGIN { in_block=0 }
-        /button.maximize.titlebutton:not\\(.suggested-action\\):not\\(.destructive-action\\)/ { in_block=1 }
-        in_block && /}/ { in_block=0 }
-        in_block && /background-color:/ {
-        sub(/background-color: .*/, "background-color: $newMaximizeColor;");
-        }
-        { print }
-        ' "$path" > "$path.tmp" && mv "$path.tmp" "$path"
-
-        awk '
-        BEGIN { in_block=0 }
-        /button.maximize.titlebutton:hover:not\\(.suggested-action\\):not\\(.destructive-action\\)/ { in_block=1 }
-        in_block && /}/ { in_block=0 }
-        in_block && /background-color:/ {
-        sub(/background-color: .*/, "background-color: shade($newMaximizeColor, 0.4);");
-        }
-        { print }
-        ' "$path" > "$path.tmp" && mv "$path.tmp" "$path"
-
-        awk '
-        BEGIN { in_block=0 }
-        /button.maximize.titlebutton:active:not\\(.suggested-action\\):not\\(.destructive-action\\)/ { in_block=1 }
-        in_block && /}/ { in_block=0 }
-        in_block && /background-color:/ {
-        sub(/background-color: .*/, "background-color: shade($newMaximizeColor, 0.6);");
-        }
-        { print }
-        ' "$path" > "$path.tmp" && mv "$path.tmp" "$path"
-
-        awk '
-        BEGIN { in_block=0 }
-        /\\.background\\.csd headerbar\\.titlebar\\.default-decoration button\\.maximize\\.titlebutton:hover:not\\(.suggested-action\\):not\\(.destructive-action\\)/ { in_block=1 }
-        in_block && /}/ { in_block=0 }
-        in_block && /background-color:/ {
-        sub(/background-color: .*/, "background-color: shade($newMaximizeColor, 0.4);");
-        }
-        { print }
-        ' "$path" > "$path.tmp" && mv "$path.tmp" "$path"
-
-        awk '
-        BEGIN { in_block=0 }
-        /\\.background\\.csd headerbar\\.titlebar\\.default-decoration button\\.maximize\\.titlebutton:active:not\\(.suggested-action\\):not\\(.destructive-action\\)/ { in_block=1 }
-        in_block && /}/ { in_block=0 }
-        in_block && /background-color:/ {
-        sub(/background-color: .*/, "background-color: shade($newMaximizeColor, 0.6);");
-        }
-        { print }
-        ' "$path" > "$path.tmp" && mv "$path.tmp" "$path"
-
-        awk '
-        BEGIN { in_block=0 }
-        /button\\.titlebutton:not\\(.suggested-action\\):not\\(.destructive-action\\)\\.maximize:active, \\
-        \\.background\\.csd\\.tiled headerbar\\.titlebar\\.default-decoration button\\.titlebutton:not\\(.suggested-action\\):not\\(.destructive-action\\)\\.maximize:hover, \\
-        \\.background\\.csd\\.tiled headerbar\\.titlebar\\.default-decoration button\\.titlebutton:not\\(.suggested-action\\):not\\(.destructive-action\\)\\.maximize:active/ {
-        in_block=1
-        }
-        in_block && /}/ { in_block=0 }
-        in_block && /background-color:/ {
-        sub(/background-color: .*/, "background-color: shade($newMaximizeColor, 0.4);");
-        }
-        { print }
-        ' "$path" > "$path.tmp" && mv "$path.tmp" "$path"
-        '''
-      ]);
-    }
-  }
-
-  // Run GNOME Shell theme temporary reset
-  await Process.run('bash', [
-    '-c',
-    "t=\$(gsettings get org.gnome.shell.extensions.user-theme name | tr -d \"'\"); "
-        "gsettings set org.gnome.shell.extensions.user-theme name 'Adwaita'; "
-        "gsettings set org.gnome.shell.extensions.user-theme name \"\$t\""
-  ]);
-
-  // Run GTK theme temporary reset
-  await Process.run('bash', [
-    '-c',
-    "t=\$(gsettings get org.gnome.desktop.interface gtk-theme | tr -d \"'\"); "
-        "gsettings set org.gnome.desktop.interface gtk-theme 'Adwaita'; "
-        "gsettings set org.gnome.desktop.interface gtk-theme \"\$t\""
-  ]);
-// sleep(Duration(seconds: 15));
   await Process.run('notify-send', [
-    '-i',
-    'dialog-information',
-    '-a',
-    'NebulaShade',
-    '-u',
-    'normal',
-    '-t',
-    '7000',
-    'Theme Updated',
-    'New Accent Colors ,GTK themes were refreshed!'
+    '-i', 'dialog-information', '-a', 'NebulaShade',
+    '-u', 'normal', '-t', '4000',
+    'Theme Updated', 'Accent colors and GTK themes refreshed!',
   ]);
 }
