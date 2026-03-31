@@ -42,9 +42,9 @@
 
 > *Demo image showing the NebulaShade customization interface.*
 
-## ✨ What is NebulaSeed?
+## ✨ What is NebulaShade?
 
-NebulaSeed brings **intelligent, wallpaper-aware theming** to Linux. Set a wallpaper, and NebulaSeed automatically derives a cohesive color palette from it — propagating that palette across your GTK apps, GNOME Shell, icon packs, file manager icons, desktop widgets, and more.
+NebulaShade brings **intelligent, wallpaper-aware theming** to Linux. Set a wallpaper, and NebulaShade automatically derives a cohesive color palette from it — propagating that palette across your GTK apps, GNOME Shell, icon packs, file manager icons, desktop widgets, and more.
 
 Think of it as **Material You for Linux** — but deeper, more customizable, and designed for power users who care about every pixel of their desktop.
 
@@ -55,11 +55,11 @@ Think of it as **Material You for Linux** — but deeper, more customizable, and
 ## 🚀 Core Features
 
 ### Dynamic Wallpaper-Driven Theming
-Set a wallpaper. NebulaSeed does the rest.  
+Set a wallpaper. NebulaShade does the rest.  
 Colors are extracted from your wallpaper and applied globally — across GTK apps, the GNOME Shell, notification panel, settings pages, and more. No manual tweaking. Just a living, breathing desktop that always feels coherent.
 
 ### File Manager Icon Theming
-NebulaSeed goes beyond apps. It recolors **file icons inside the native file manager** to match your current wallpaper palette — so even your filesystem feels like part of the design system.
+NebulaShade goes beyond apps. It recolors **file icons inside the native file manager** to match your current wallpaper palette — so even your filesystem feels like part of the design system.
 
 ### Custom Desktop Widgets
 A built-in widget layer for your desktop, including:
@@ -68,7 +68,7 @@ A built-in widget layer for your desktop, including:
 - One-click apply — go from a bland desktop to a polished, professional setup instantly
 
 ### 🛍️ Built-in Marketplace
-Browse and install from a curated marketplace directly inside NebulaSeed:
+Browse and install from a curated marketplace directly inside NebulaShade:
 - **Icon packs**
 - **Cursor themes**
 - **GTK / Shell themes**
@@ -77,7 +77,7 @@ Browse and install from a curated marketplace directly inside NebulaSeed:
 Everything managed in one place. No hunting through external sites.
 
 ### 🧩 Unified Theme Manager
-NebulaSeed is the single control panel for your entire desktop aesthetic:
+NebulaShade is the single control panel for your entire desktop aesthetic:
 - Switch themes, icon packs, cursors, and wallpapers
 - Preview changes before applying
 - Manage installed assets in one unified interface
@@ -99,14 +99,14 @@ NebulaSeed is the single control panel for your entire desktop aesthetic:
 
 ## 📦 Installation
 
-> ⚠️ **NebulaSeed is not yet released.** Installation instructions will be published here upon first stable release.
+> ⚠️ **NebulaShade is not yet released.** Installation instructions will be published here upon first stable release.
 
 If you'd like to build from source for development/testing:
 
 ```bash
 # Clone the repository
-git clone https://github.com/smrutiprakashrout/nebulaseed.git
-cd nebulaseed
+git clone https://github.com/smrutiprakashrout/NebulaShade.git
+cd NebulaShade
 
 # Install Flutter dependencies
 flutter pub get
@@ -137,7 +137,7 @@ flutter run -d linux
 
 ## 🤝 Contributing
 
-NebulaSeed is **not accepting external contributions yet** while core architecture is being finalized.  
+NebulaShade is **not accepting external contributions yet** while core architecture is being finalized.  
 Once the project reaches a stable foundation, contribution guidelines will be published.  
 
 **Star the repo** to get notified when it opens up. ⭐
@@ -146,8 +146,8 @@ Once the project reaches a stable foundation, contribution guidelines will be pu
 
 ## 🧑‍💻 Author
 
-**Smruti Prakash Rout**  
-Full-stack developer · Linux systems engineer · Open source builder  
+**Smruti Prakash Rout**  🇮🇳
+Full-stack developer · Systems & Network Adminstater · Devops Engineer
 
 [![GitHub](https://img.shields.io/badge/GitHub-smrutiprakashrout-181717?style=flat-square&logo=github)](https://github.com/smrutiprakashrout)
 
