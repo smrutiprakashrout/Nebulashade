@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nebulashade/components/quick_apply.dart';
 import 'package:nebulashade/components/quickpannel.dart';
 import 'package:nebulashade/constants/colours.dart';
 import 'package:palette_generator/palette_generator.dart';
@@ -20,6 +21,7 @@ class ColorPaletteScreen extends StatefulWidget {
 class _ColorPaletteScreenState extends State<ColorPaletteScreen> {
   PaletteGenerator? _palette;
   String? _selectedPaletteLabel; // Track selected color palette by label
+  bool _isApplying = false;
 
   @override
   void initState() {
@@ -160,6 +162,23 @@ class _ColorPaletteScreenState extends State<ColorPaletteScreen> {
     return '#${rgb.toRadixString(16).padLeft(6, '0').toUpperCase()}';
   }
 
+  Future<void> _applySelectedTheme() async {
+    if (_isApplying) return;
+    setState(() => _isApplying = true);
+    try {
+      await quickapplyTheme(getSelectedBaseColorHex(1));
+    } catch (e) {
+      debugPrint('Apply Theme failed: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not apply theme')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isApplying = false);
+    }
+  }
+
   Widget _buildColorPalette(String label, Color? baseColor) {
     final shades = getFilteredShades(baseColor ?? Colors.transparent);
     final isSelected = _selectedPaletteLabel == label;
@@ -232,6 +251,17 @@ class _ColorPaletteScreenState extends State<ColorPaletteScreen> {
 
   @override
   Widget build(BuildContext context) {
+    const labels = [
+      'Default Color',
+      'Dominant Color',
+      'Vibrant Color',
+      'Dark Vibrant Color',
+      'Light Vibrant Color',
+      'Muted Color',
+      'Dark Muted Color',
+      'Light Muted Color',
+    ];
+
     final imageWidget = Image(image: widget.imageProvider, fit: BoxFit.cover);
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -567,23 +597,8 @@ class _ColorPaletteScreenState extends State<ColorPaletteScreen> {
                           Padding(
                             padding: const EdgeInsets.only(top: 32),
                             child: ElevatedButton(
-                                onPressed: () {
-                                  // quickapplyThemedemo();
-                                  // print(getSelectedBaseColorHex(
-                                  //   dominantColors: widget.dominantColors,
-                                  //   selectedLabel: _selectedPaletteLabel,
-                                  //   shadeIndex: 2,
-                                  //   getFilteredShades: getFilteredShades,
-                                  //   fallbackColor: AppColors.background,
-                                  // ));
-                                  // print(getSelectedBaseColorHex(1));
-                                  // print(getSelectedBaseColorHex(2));
-                                  // print(getSelectedBaseColorHex(3));
-                                  // print(getSelectedBaseColorHex(4));
-                                  // print(getSelectedBaseColorHex(5));
-                                  // print(getSelectedBaseColorHex(6));
-                                  // print(getSelectedBaseColorHex(7));
-                                },
+                                onPressed:
+                                    _isApplying ? null : _applySelectedTheme,
                                 style: ElevatedButton.styleFrom(
                                     backgroundColor: _getSelectedBaseColor(5),
                                     shape: RoundedRectangleBorder(
@@ -599,7 +614,9 @@ class _ColorPaletteScreenState extends State<ColorPaletteScreen> {
                                     ),
                                     SizedBox(width: 10),
                                     Text(
-                                      "Apply Theme",
+                                      _isApplying
+                                          ? "Applying..."
+                                          : "Apply Theme",
                                       style: TextStyle(
                                         color: Colors.white,
                                       ),
@@ -620,22 +637,12 @@ class _ColorPaletteScreenState extends State<ColorPaletteScreen> {
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       children: [
-                        _buildColorPalette(
-                            "Default Color", widget.dominantColors[0]),
-                        _buildColorPalette(
-                            "Dominant Color", widget.dominantColors[1]),
-                        _buildColorPalette(
-                            "Vibrant Color", widget.dominantColors[2]),
-                        _buildColorPalette(
-                            "Dark Vibrant Color", widget.dominantColors[3]),
-                        _buildColorPalette(
-                            "Light Vibrant Color", widget.dominantColors[4]),
-                        _buildColorPalette(
-                            "Muted Color", widget.dominantColors[5]),
-                        _buildColorPalette(
-                            "Dark Muted Color", widget.dominantColors[6]),
-                        _buildColorPalette(
-                            "Light Muted Color", widget.dominantColors[7]),
+                        for (int i = 0;
+                            i < labels.length &&
+                                i < widget.dominantColors.length;
+                            i++)
+                          _buildColorPalette(
+                              labels[i], widget.dominantColors[i]),
                       ],
                     ),
                   ),

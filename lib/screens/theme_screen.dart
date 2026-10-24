@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:nebulashade/constants/colours.dart';
 import 'package:nebulashade/screens/ColorPaletteScreen.dart';
 import 'package:nebulashade/screens/color_edit_screen.dart';
+import 'package:nebulashade/screens/advanced_options_screen.dart';
 import 'package:nebulashade/screens/dynamic/getthemes_screen.dart';
 import 'package:nebulashade/screens/dynamic/newwallpaper_screen.dart';
 import 'package:palette_generator/palette_generator.dart';
@@ -12,6 +13,13 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:nebulashade/components/quick_apply.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:nebulashade/config/theme_variants.dart';
+import 'package:nebulashade/services/theme_detector.dart';
+import 'package:nebulashade/services/theme_downloader.dart';
+import 'package:nebulashade/services/theme_switcher.dart';
+import 'package:nebulashade/widgets/theme_variants_panel.dart';
+import 'package:nebulashade/widgets/customize_panel.dart';
+import 'package:nebulashade/services/folder_colorizer.dart';
 // import 'package:file_picker/file_picker.dart';
 
 class ThemeScreen extends StatefulWidget {
@@ -37,6 +45,17 @@ class _ThemeScreenState extends State<ThemeScreen> {
   List<String> shades = [];
   bool ispalletegen = false;
   bool isThemeChange = false;
+  Map<String, ThemeCheckResult>? themeChecks;
+  bool checkingThemes = true;
+  DownloadPhase downloadPhase = DownloadPhase.idle;
+  double? downloadProgress;
+  String? activeVariantId;
+  bool switching = false;
+  final ThemeSwitcher _switcher = ThemeSwitcher();
+  final FolderColorizer _folderColorizer = FolderColorizer();
+  Color? folderCurrentColor;
+  bool folderApplying = false;
+  String? folderReason;
   List<String> getCurrentShades() {
     return shades; // Returns the current shades list from the parent's state
   }
@@ -44,6 +63,9 @@ class _ThemeScreenState extends State<ThemeScreen> {
   @override
   void initState() {
     super.initState();
+    _loadActiveVariant();
+    _refreshThemeChecks();
+    _loadFolderColor();
     _getCurrentWallpaper();
     // _generatePalette();
     Timer.periodic(Duration(seconds: 3), (_) {
@@ -53,6 +75,109 @@ class _ThemeScreenState extends State<ThemeScreen> {
     shades.isNotEmpty
         ? print("shades generated -> $shades")
         : print("shades generation in progress");
+  }
+
+  Future<void> _refreshThemeChecks() async {
+    setState(() => checkingThemes = true);
+    final results = await ThemeDetector().checkAll();
+    if (!mounted) return;
+    setState(() {
+      themeChecks = results;
+      checkingThemes = false;
+    });
+    await _loadActiveVariant();
+  }
+
+  Future<void> _loadActiveVariant() async {
+    final current = await _switcher.currentVariantId();
+    if (!mounted) return;
+    setState(() => activeVariantId = current);
+  }
+
+  Future<void> _switchVariant(ThemeVariant target) async {
+    if (!mounted || switching) return;
+    setState(() => switching = true);
+    final result = await _switcher.switchTo(target);
+    await _loadActiveVariant();
+    await _refreshThemeChecks();
+    if (!mounted) return;
+    setState(() => switching = false);
+    final message = result.ok
+        ? '${result.message}. Restart open apps to fully refresh.'
+        : result.message;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: result.ok ? null : Colors.red.shade700,
+      ),
+    );
+  }
+
+  Future<void> _downloadLightTheme() async {
+    final uri = Uri.parse(ThemeVariants.lightDownloadUrl);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Download Everforest Light?'),
+        content: Text(
+          'Source: ${uri.host}\n'
+          'Destination: ~/.themes/${ThemeVariants.light.folderName}\n\n'
+          'This only installs the theme. It will not change your current theme.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Download'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() {
+      downloadPhase = DownloadPhase.downloading;
+      downloadProgress = null;
+    });
+
+    InstallResult result;
+    try {
+      result = await ThemeDownloader().downloadAndInstall(
+        ThemeVariants.light,
+        url: ThemeVariants.lightDownloadUrl,
+        sha256: ThemeVariants.lightDownloadSha256,
+        onProgress: (phase, progress) {
+          if (!mounted) return;
+          setState(() {
+            downloadPhase = phase;
+            downloadProgress = progress;
+          });
+        },
+      );
+    } catch (error) {
+      result = InstallResult(
+          ok: false, message: 'Could not install the theme: $error');
+    }
+
+    if (!mounted) return;
+    await _refreshThemeChecks();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          result.ok
+              ? 'Everforest Light installed'
+              : result.message ?? 'Could not install the theme',
+        ),
+      ),
+    );
+    setState(() {
+      downloadPhase = DownloadPhase.idle;
+      downloadProgress = null;
+    });
   }
 
 // ============================================================================================
@@ -333,8 +458,10 @@ class _ThemeScreenState extends State<ThemeScreen> {
                 children: [
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.lighten(AppColors.background, 0.2),
-                      padding: EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+                      backgroundColor:
+                          AppColors.lighten(AppColors.background, 0.2),
+                      padding:
+                          EdgeInsets.symmetric(vertical: 20, horizontal: 24),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(6),
                       ),
@@ -342,6 +469,46 @@ class _ThemeScreenState extends State<ThemeScreen> {
                     onPressed: () {},
                     child: Text("Open CSS file",
                         style: TextStyle(color: Colors.white, fontSize: 12)),
+                  ),
+                  SizedBox(width: 10),
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 0),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => AdvancedOptionsScreen(
+                              wallpaperPath: wallpaperPath,
+                              dominantColors: dominantColors,
+                            ),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            AppColors.lighten(AppColors.background, 0.2),
+                        foregroundColor: AppColors.buttonText,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 12),
+                        elevation: 0,
+                      ),
+                      child: const Padding(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                        child: Tooltip(
+                          message: 'Advanced Options',
+                          child: Icon(
+                            Icons.tune,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                   SizedBox(width: 10),
                   Container(
@@ -356,16 +523,19 @@ class _ThemeScreenState extends State<ThemeScreen> {
                         );
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.lighten(AppColors.background, 0.2),
+                        backgroundColor:
+                            AppColors.lighten(AppColors.background, 0.2),
                         foregroundColor: AppColors.buttonText,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 12),
                         elevation: 0,
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 8),
                         child: Icon(
                           Icons.shopping_cart,
                           color: Colors.white,
@@ -380,16 +550,19 @@ class _ThemeScreenState extends State<ThemeScreen> {
                     child: ElevatedButton(
                       onPressed: _openFolderPicker,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.lighten(AppColors.background, 0.2),
+                        backgroundColor:
+                            AppColors.lighten(AppColors.background, 0.2),
                         foregroundColor: AppColors.buttonText,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 12),
                         elevation: 0,
                       ),
                       child: const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 6, vertical: 8),
                         child: Icon(
                           Icons.inventory,
                           color: Colors.white,
@@ -425,7 +598,8 @@ class _ThemeScreenState extends State<ThemeScreen> {
                           itemBuilder: (context, index) {
                             return GestureDetector(
                               onTap: () {
-                                print('Color selected: ${dominantColors[index]}');
+                                print(
+                                    'Color selected: ${dominantColors[index]}');
                               },
                               child: Container(
                                 width: 64.8,
@@ -710,75 +884,60 @@ class _ThemeScreenState extends State<ThemeScreen> {
                 _buildColorPalette(),
                 SizedBox(height: 20),
 
-                _buildThemeOption("Global Theme", globalTheme, Icons.add),
-                _buildThemeOption("GTK 3.0 Theme", gtk3Theme, Icons.edit),
-                _buildThemeOption("GTK 4.0 Theme", gtk4Theme, Icons.edit),
-                _buildThemeOption("Gnome Shell", shellTheme, Icons.edit),
-                SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text("Toggle Dark Mode",
-                        style: TextStyle(color: Colors.white, fontSize: 14)),
-                    Transform.scale(
-                      scale: 0.9,
-                      child: Switch(
-                        value: isDarkMode,
-                        onChanged: (bool value) {
-                          setState(() {
-                            isDarkMode = value;
-                          });
-                        },
-                        activeColor: AppColors.adjustColor(AppColors.background,
-                            saturationDelta: 24, valueDelta: 49),
-                        activeTrackColor: AppColors.adjustColor(
-                            AppColors.background,
-                            saturationDelta: 70,
-                            valueDelta: 18),
-                        inactiveThumbColor: AppColors.adjustColor(
-                            AppColors.background,
-                            saturationDelta: 70,
-                            valueDelta: 18),
-                        inactiveTrackColor: AppColors.adjustColor(
-                            AppColors.background,
-                            saturationDelta: 24,
-                            valueDelta: 49),
+                IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        flex: 1,
+                        child: ThemeVariantsPanel(
+                          dark: themeChecks?['dark'],
+                          light: themeChecks?['light'],
+                          checking: checkingThemes,
+                          activeVariantId: activeVariantId,
+                          switching: switching,
+                          canSwitch:
+                              ThemeDetector().canSwitch(themeChecks ?? {}),
+                          downloadConfigured:
+                              ThemeVariants.lightDownloadConfigured,
+                          downloadPhase: downloadPhase,
+                          downloadProgress: downloadProgress,
+                          darkPalette: dominantColors,
+                          baseColor: AppColors.background,
+                          onRefresh: _refreshThemeChecks,
+                          onSelectVariant: (id) => _switchVariant(
+                            id == 'light'
+                                ? ThemeVariants.light
+                                : ThemeVariants.dark,
+                          ),
+                          onDownloadLight: _downloadLightTheme,
+                          onRestoreDark: activeVariantId == 'light' &&
+                                  (themeChecks?['light']?.status ??
+                                          ThemeStatus.missing) !=
+                                      ThemeStatus.complete
+                              ? () => _switchVariant(ThemeVariants.dark)
+                              : null,
+                          footer: _buildFixFlatpakThemeRow(),
+                        ),
                       ),
-                    )
-                  ],
-                ),
-                SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text("Fix Flatpak GTK Theme",
-                        style: TextStyle(color: Colors.white, fontSize: 14)),
-                    Transform.scale(
-                      scale: 0.9,
-                      child: Switch(
-                        value: isDarkMode,
-                        onChanged: (bool value) {
-                          setState(() {
-                            isDarkMode = value;
-                          });
-                        },
-                        activeColor: AppColors.adjustColor(AppColors.background,
-                            saturationDelta: 24, valueDelta: 49),
-                        activeTrackColor: AppColors.adjustColor(
-                            AppColors.background,
-                            saturationDelta: 70,
-                            valueDelta: 18),
-                        inactiveThumbColor: AppColors.adjustColor(
-                            AppColors.background,
-                            saturationDelta: 70,
-                            valueDelta: 18),
-                        inactiveTrackColor: AppColors.adjustColor(
-                            AppColors.background,
-                            saturationDelta: 24,
-                            valueDelta: 49),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        flex: 1,
+                        child: CustomizePanel(
+                          baseColor: AppColors.background,
+                          wallpaperPalette: dominantColors,
+                          initialFolderColor: folderCurrentColor,
+                          folderApplyEnabled:
+                              folderCurrentColor != null && !folderApplying,
+                          folderApplyDisabledReason: folderReason,
+                          applying: folderApplying,
+                          onApplyFolder: _handleApplyFolder,
+                          onApplyTopBar: null,
+                          onApplyDock: null,
+                        ),
                       ),
-                    )
-                  ],
+                    ],
+                  ),
                 ),
                 SizedBox(height: 16),
                 // ---------------------------------------------------
@@ -790,6 +949,77 @@ class _ThemeScreenState extends State<ThemeScreen> {
     );
   }
 
+  Widget _buildFixFlatpakThemeRow() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text("Fix Flatpak GTK Theme",
+            style: TextStyle(color: Colors.white, fontSize: 14)),
+        Transform.scale(
+          scale: 0.9,
+          child: Tooltip(
+              message: ThemeDetector().canSwitch(themeChecks ?? {})
+                  ? "Switching will be enabled in the next update"
+                  : "Install both Everforest variants first",
+              child: Switch(
+                value: isDarkMode,
+                onChanged: null,
+                activeColor: AppColors.adjustColor(AppColors.background,
+                    saturationDelta: 24, valueDelta: 49),
+                activeTrackColor: AppColors.adjustColor(AppColors.background,
+                    saturationDelta: 70, valueDelta: 18),
+                inactiveThumbColor: AppColors.adjustColor(AppColors.background,
+                    saturationDelta: 70, valueDelta: 18),
+                inactiveTrackColor: AppColors.adjustColor(AppColors.background,
+                    saturationDelta: 24, valueDelta: 49),
+              )),
+        )
+      ],
+    );
+  }
+
+  Future<void> _loadFolderColor() async {
+    try {
+      final hex = await _folderColorizer.readCurrentHex();
+      if (!mounted) return;
+      setState(() {
+        folderCurrentColor = hex == null
+            ? null
+            : Color(int.parse('FF${hex.replaceFirst('#', '')}', radix: 16));
+        folderReason = hex == null ? 'Folder icon theme not found' : null;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        folderCurrentColor = null;
+        folderReason = 'Folder icon theme not found';
+      });
+    }
+  }
+
+  Future<void> _handleApplyFolder(String hex) async {
+    if (mounted) setState(() => folderApplying = true);
+    try {
+      final result = await _folderColorizer.apply(hex);
+      if (!mounted) return;
+      setState(() => folderApplying = false);
+      await _loadFolderColor();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(result.message)));
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        folderApplying = false;
+        folderReason = 'Folder colour update failed';
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Folder colour update failed')),
+      );
+    }
+  }
+
+  // ignore: unused_element
   Widget _buildThemeOption(String title, String themeName, IconData icon) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),

@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:nebulashade/components/autoadjusthue.dart';
 import 'package:nebulashade/components/apply_theme.dart';
 import 'package:nebulashade/constants/colours.dart';
+import 'package:nebulashade/services/variant_state.dart';
+import 'package:nebulashade/services/variant_apply.dart';
 
 List<String> colorCodes = [];
 List<String> modifiedColorCodes = [];
@@ -10,6 +12,10 @@ double hueShift = 0;
 String originalCssContent = '';
 
 Future<void> quickapplyTheme(String hexColor) async {
+  if (VariantState.activeVariantIdSync() == 'light') {
+    await applyHexToLight(hexColor);
+    return;
+  }
   final home = Platform.environment['HOME']!;
 
   final List<String> filePaths = [
@@ -26,7 +32,7 @@ Future<void> quickapplyTheme(String hexColor) async {
   // Constant button colors - never shift with the hue adjustment
   const minimize = '#e69875';
   const maximize = '#a7c080';
-  const close    = '#e67e80';
+  const close = '#e67e80';
 
   // Step 1: hue shift all files first — must complete before step 2.
   // automaticColorAdjustment rewrites every color, so running concurrently
@@ -38,8 +44,8 @@ Future<void> quickapplyTheme(String hexColor) async {
     final file = File(path);
     if (!await file.exists()) return;
     final css = await file.readAsString();
-    final patched = applyButtonColors(
-        css, minimize: minimize, maximize: maximize, close: close);
+    final patched = applyButtonColors(css,
+        minimize: minimize, maximize: maximize, close: close);
     if (patched != css) await file.writeAsString(patched);
   }));
 
@@ -75,8 +81,19 @@ Future<void> quickapplyTheme(String hexColor) async {
   AppColors.init();
 
   await Process.run('notify-send', [
-    '-i', 'dialog-information', '-a', 'NebulaShade',
-    '-u', 'normal', '-t', '4000',
-    'Theme Updated', 'Accent colors and GTK themes refreshed!',
+    '-i',
+    'dialog-information',
+    '-a',
+    'NebulaShade',
+    '-u',
+    'normal',
+    '-t',
+    '4000',
+    'Theme Updated',
+    'Accent colors and GTK themes refreshed!',
   ]);
+
+  try {
+    await VariantState.recordApplied('dark', hexColor);
+  } catch (_) {}
 }

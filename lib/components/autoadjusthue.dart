@@ -2,18 +2,20 @@ import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
 
-Future<void> automaticColorAdjustment(String targetHexCode) async {
+Future<void> automaticColorAdjustment(String targetHexCode,
+    {List<String>? overridePaths}) async {
   // Define file paths
-  final List<String> filePaths = [
-    '${Platform.environment['HOME']}/.themes/Everforest-Dark-Soft-Adaptive/gtk-4.0/gtk.css',
-    '${Platform.environment['HOME']}/.themes/Everforest-Dark-Soft-Adaptive/gtk-4.0/gtk-dark.css',
-    '${Platform.environment['HOME']}/.themes/Everforest-Dark-Soft-Adaptive/gtk-3.0/gtk.css',
-    '${Platform.environment['HOME']}/.themes/Everforest-Dark-Soft-Adaptive/gtk-3.0/gtk-dark.css',
-    '${Platform.environment['HOME']}/.themes/Everforest-Dark-Soft-Adaptive/gnome-shell/gnome-shell.css',
-    '${Platform.environment['HOME']}/.themes/Everforest-Dark-Soft-Adaptive/gnome-shell/pad-osd.css',
-    '${Platform.environment['HOME']}/.config/gtk-4.0/gtk.css',
-    '${Platform.environment['HOME']}/.config/gtk-4.0/gtk-dark.css',
-  ];
+  final List<String> filePaths = overridePaths ??
+      [
+        '${Platform.environment['HOME']}/.themes/Everforest-Dark-Soft-Adaptive/gtk-4.0/gtk.css',
+        '${Platform.environment['HOME']}/.themes/Everforest-Dark-Soft-Adaptive/gtk-4.0/gtk-dark.css',
+        '${Platform.environment['HOME']}/.themes/Everforest-Dark-Soft-Adaptive/gtk-3.0/gtk.css',
+        '${Platform.environment['HOME']}/.themes/Everforest-Dark-Soft-Adaptive/gtk-3.0/gtk-dark.css',
+        '${Platform.environment['HOME']}/.themes/Everforest-Dark-Soft-Adaptive/gnome-shell/gnome-shell.css',
+        '${Platform.environment['HOME']}/.themes/Everforest-Dark-Soft-Adaptive/gnome-shell/pad-osd.css',
+        '${Platform.environment['HOME']}/.config/gtk-4.0/gtk.css',
+        '${Platform.environment['HOME']}/.config/gtk-4.0/gtk-dark.css',
+      ];
 
   // Parse target color
   final targetColor = _parseColor(targetHexCode);
@@ -44,7 +46,7 @@ Future<void> automaticColorAdjustment(String targetHexCode) async {
       }
       await file.writeAsString(fileContent);
     }));
-    
+
     // print("Color adjustment completed successfully!");
   } catch (e) {
     // print("Error during color adjustment: ${e.toString()}");
@@ -108,9 +110,8 @@ Color? _parseColor(String code) {
       final r = int.parse(values[0]);
       final g = int.parse(values[1]);
       final b = int.parse(values[2]);
-      final a = values.length == 4 
-          ? (double.parse(values[3]) * 255).round() 
-          : 255;
+      final a =
+          values.length == 4 ? (double.parse(values[3]) * 255).round() : 255;
 
       return Color.fromARGB(a, r, g, b);
     } else if (code.startsWith('rgb')) {
@@ -159,7 +160,7 @@ double _calculateAverageHue(List<String> colorCodes) {
   // Convert back to degrees (0-360 range)
   double avgHue = (avgHueRadians * 180 / pi) % 360;
   if (avgHue < 0) avgHue += 360;
-  
+
   return avgHue;
 }
 
@@ -168,7 +169,7 @@ double _calculateHueShift(double targetHue, double currentHue) {
   // Calculate both clockwise and counterclockwise distance
   double clockwise = (targetHue - currentHue) % 360;
   double counterClockwise = (currentHue - targetHue) % 360;
-  
+
   // Use the shorter distance
   return clockwise <= counterClockwise ? clockwise : -counterClockwise;
 }
@@ -199,8 +200,9 @@ String _shiftHuePreservingFormat(String colorCode, double hueShift) {
   } else if (colorCode.startsWith('rgba')) {
     // Extract original alpha value format
     final alphaMatch = RegExp(r',\s*([\d.]+)\s*\)').firstMatch(colorCode);
-    final originalAlpha = alphaMatch?.group(1) ?? newColor.opacity.toStringAsFixed(2);
-    
+    final originalAlpha =
+        alphaMatch?.group(1) ?? newColor.opacity.toStringAsFixed(2);
+
     return 'rgba(${newColor.red}, ${newColor.green}, ${newColor.blue}, $originalAlpha)';
   } else if (colorCode.startsWith('rgb')) {
     return 'rgb(${newColor.red}, ${newColor.green}, ${newColor.blue})';

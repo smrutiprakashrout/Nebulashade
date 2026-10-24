@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
+import 'package:nebulashade/services/variant_state.dart';
 
 class AppColors {
   static late Color background;
@@ -27,17 +28,16 @@ class AppColors {
     return lighter.toColor();
   }
 
-static Color adjustColor(Color color,
+  static Color adjustColor(Color color,
       {int saturationDelta = 0, int valueDelta = 0}) {
-  final hsv = HSVColor.fromColor(color);
+    final hsv = HSVColor.fromColor(color);
 
-  final newSaturation = (saturationDelta.clamp(0, 100)) / 100;
-  final newValue = (valueDelta.clamp(0, 100)) / 100;
+    final newSaturation = (saturationDelta.clamp(0, 100)) / 100;
+    final newValue = (valueDelta.clamp(0, 100)) / 100;
 
-  final adjusted = hsv.withSaturation(newSaturation).withValue(newValue);
-  return adjusted.toColor();
-}
-
+    final adjusted = hsv.withSaturation(newSaturation).withValue(newValue);
+    return adjusted.toColor();
+  }
 
   static late Color accentdark;
   static late Color accentbrite;
@@ -45,9 +45,24 @@ static Color adjustColor(Color color,
   /// Call this before using any colors (e.g., in main function)
   static void init() {
     try {
-      final file =
+      final liveFile =
           File('${Platform.environment['HOME']}/.config/gtk-4.0/gtk.css');
-      final contents = file.readAsStringSync();
+      var file = liveFile;
+      try {
+        if (VariantState.activeVariantIdSync() == 'light') {
+          final darkSnapshot =
+              '${VariantState.snapshotDir('dark')}${Platform.pathSeparator}gtk.css';
+          if (File(darkSnapshot).existsSync()) file = File(darkSnapshot);
+        }
+      } catch (_) {
+        file = liveFile;
+      }
+      String contents;
+      try {
+        contents = file.readAsStringSync();
+      } catch (_) {
+        contents = liveFile.readAsStringSync();
+      }
 
       final bgMatch =
           RegExp(r'background-color:\s*(#[A-Fa-f0-9]{6})').firstMatch(contents);
