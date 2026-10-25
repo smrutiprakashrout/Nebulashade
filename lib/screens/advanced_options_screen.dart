@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:nebulashade/constants/colours.dart';
 import 'package:nebulashade/screens/ColorPaletteScreen.dart';
 import 'package:nebulashade/screens/color_edit_screen.dart';
+import 'package:nebulashade/screens/widget_sync_screen.dart';
 
 class AdvancedOptionsScreen extends StatelessWidget {
   final String? wallpaperPath;
@@ -51,6 +52,17 @@ class AdvancedOptionsScreen extends StatelessWidget {
                       );
                     }
                   : null,
+            ),
+            const SizedBox(height: 12),
+            _buildOptionTile(
+              enabled: true,
+              icon: Icons.widgets_outlined,
+              title: 'Sync with Widgets',
+              subtitle: 'Match GTK, Shell, folders, and widget colours',
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const WidgetSyncScreen()),
+              ),
             ),
             const SizedBox(height: 12),
             _buildOptionTile(

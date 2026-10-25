@@ -108,12 +108,30 @@ class FolderColorizer {
             ok: true, message: 'Already this colour');
       }
 
-      final files = <File>[];
+      final home = Platform.environment['HOME'];
+      if (home == null || home.isEmpty) {
+        return const FolderColorResult(
+            ok: false, message: 'Home directory is unavailable');
+      }
+      final homeRoot = Directory(home).resolveSymbolicLinksSync();
+      final filesByPath = <String, File>{};
       for (final name in fileNames) {
         final path = '$dir/places/scalable/default-$name';
-        final type = await FileSystemEntity.type(path, followLinks: false);
-        if (type == FileSystemEntityType.file) files.add(File(path));
+        try {
+          final entityType =
+              await FileSystemEntity.type(path, followLinks: true);
+          if (entityType != FileSystemEntityType.file) continue;
+          final realPath = await File(path).resolveSymbolicLinks();
+          final normalized = File(realPath).absolute.path;
+          if (!normalized.startsWith('$homeRoot${Platform.pathSeparator}')) {
+            continue;
+          }
+          filesByPath.putIfAbsent(normalized, () => File(normalized));
+        } on FileSystemException {
+          // Ignore missing or dangling icon links.
+        }
       }
+      final files = filesByPath.values.toList();
       if (files.isEmpty) {
         return const FolderColorResult(
             ok: false, message: 'No folder icon files were found');
