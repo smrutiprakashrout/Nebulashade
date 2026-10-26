@@ -2,6 +2,17 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'dart:async';
 import 'package:nebulashade/constants/colours.dart'; // Import your AppColors file
+import 'package:nebulashade/engine/watch_gate.dart';
+
+bool shouldReinitializeAppColorsForEvent(
+    FileSystemEvent event, String targetPath) {
+  if (event.path != targetPath ||
+      (event is! FileSystemModifyEvent && event is! FileSystemCreateEvent)) {
+    return false;
+  }
+  if (WatchGate.suspended) return false;
+  return true;
+}
 
 class AppColorsNotifier extends ValueNotifier<Color> {
   AppColorsNotifier(Color value) : super(value);
@@ -24,11 +35,9 @@ class AppColorsNotifier extends ValueNotifier<Color> {
     }
 
     _watcher = _file.parent.watch().listen((event) {
-      if (event.path == _file.path &&
-          (event is FileSystemModifyEvent || event is FileSystemCreateEvent)) {
-        AppColors.init();
-        value = AppColors.background;
-      }
+      if (!shouldReinitializeAppColorsForEvent(event, _file.path)) return;
+      AppColors.init();
+      value = AppColors.background;
     });
   }
 

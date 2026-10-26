@@ -10,14 +10,20 @@ class FolderColorResult {
 }
 
 class FolderColorizer {
-  FolderColorizer({GsettingsRunner? gs, String? iconsRoot, String? configDir})
+  FolderColorizer(
+      {GsettingsRunner? gs,
+      String? iconsRoot,
+      String? configDir,
+      String? homeRoot})
       : _gs = gs ?? ProcessGsettingsRunner(),
+        _homeRoot = homeRoot ?? Platform.environment['HOME'] ?? '',
         _iconsRoot = iconsRoot ??
-            '${Platform.environment['HOME'] ?? ''}/.local/share/icons',
+            '${homeRoot ?? Platform.environment['HOME'] ?? ''}/.local/share/icons',
         _configDir = configDir ??
-            '${Platform.environment['HOME'] ?? ''}/.config/nebulashade';
+            '${homeRoot ?? Platform.environment['HOME'] ?? ''}/.config/nebulashade';
 
   final GsettingsRunner _gs;
+  final String _homeRoot;
   final String _iconsRoot;
   final String _configDir;
 
@@ -108,12 +114,12 @@ class FolderColorizer {
             ok: true, message: 'Already this colour');
       }
 
-      final home = Platform.environment['HOME'];
-      if (home == null || home.isEmpty) {
+      if (_homeRoot.isEmpty) {
         return const FolderColorResult(
             ok: false, message: 'Home directory is unavailable');
       }
-      final homeRoot = Directory(home).resolveSymbolicLinksSync();
+      final resolvedHome = Directory(_homeRoot).resolveSymbolicLinksSync();
+      final resolvedIcons = Directory(dir).resolveSymbolicLinksSync();
       final filesByPath = <String, File>{};
       for (final name in fileNames) {
         final path = '$dir/places/scalable/default-$name';
@@ -123,7 +129,10 @@ class FolderColorizer {
           if (entityType != FileSystemEntityType.file) continue;
           final realPath = await File(path).resolveSymbolicLinks();
           final normalized = File(realPath).absolute.path;
-          if (!normalized.startsWith('$homeRoot${Platform.pathSeparator}')) {
+          if (!normalized
+                  .startsWith('$resolvedHome${Platform.pathSeparator}') ||
+              !normalized
+                  .startsWith('$resolvedIcons${Platform.pathSeparator}')) {
             continue;
           }
           filesByPath.putIfAbsent(normalized, () => File(normalized));
@@ -180,8 +189,11 @@ class FolderColorizer {
         refreshSkipped = true;
       } else {
         try {
-          await _gs.set(gtkInterfaceSchema, 'icon-theme', 'Adwaita');
-          await _gs.set(gtkInterfaceSchema, 'icon-theme', previous.value);
+          final refresh =
+              await _gs.set(gtkInterfaceSchema, 'icon-theme', 'Adwaita');
+          final restore =
+              await _gs.set(gtkInterfaceSchema, 'icon-theme', previous.value);
+          if (!refresh.ok || !restore.ok) refreshSkipped = true;
         } catch (_) {
           refreshSkipped = true;
         } finally {

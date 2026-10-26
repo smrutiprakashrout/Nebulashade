@@ -31,12 +31,14 @@ void main() {
   late Directory temp;
   late Directory icons;
   late Directory config;
+  late Directory home;
   late FakeGsettingsRunner gs;
   late FolderColorizer colorizer;
 
   Future<void> setupIcons({String theme = 'Test-Theme'}) async {
-    icons = Directory('${temp.path}/icons');
-    config = Directory('${temp.path}/config');
+    home = Directory('${temp.path}/home');
+    icons = Directory('${home.path}/.local/share/icons');
+    config = Directory('${home.path}/.config/nebulashade');
     gs.values['icon-theme'] = theme;
     final dir = Directory('${icons.path}/$theme/places/scalable');
     await dir.create(recursive: true);
@@ -47,8 +49,11 @@ void main() {
     await File('${dir.path}/default-user-home.svg')
         .writeAsString('<svg fill:#FF0000/>');
     await File('${dir.path}/other.svg').writeAsString('#ff0000');
-    colorizer =
-        FolderColorizer(gs: gs, iconsRoot: icons.path, configDir: config.path);
+    colorizer = FolderColorizer(
+        gs: gs,
+        iconsRoot: icons.path,
+        configDir: config.path,
+        homeRoot: home.path);
   }
 
   setUp(() async {
@@ -113,6 +118,8 @@ void main() {
     final result = await colorizer.apply('#00FF00');
     expect(result.ok, isTrue);
     expect(gs.values['icon-theme'], 'Test-Theme');
+    expect(
+        result.message, contains('Restart apps to see the new folder colour'));
   });
 
   test('resolve falls back only inside icons root', () async {
@@ -127,16 +134,21 @@ void main() {
     expect(await colorizer.resolveIconThemeDir(), isNull);
   });
 
-  test('skips symlinked listed files', () async {
+  test('follows in-theme symlinks and skips targets outside icon theme',
+      () async {
     final dir = Directory('${icons.path}/Test-Theme/places/scalable');
     await File('${dir.path}/default-folder-documents.svg').delete();
     await Link('${dir.path}/default-folder-documents.svg')
         .create('${dir.path}/other.svg');
+    final outside = File('${temp.path}/outside.svg');
+    await outside.writeAsString('<svg fill:#ff0000/>');
+    await File('${dir.path}/default-folder-games.svg').create();
+    await File('${dir.path}/default-folder-games.svg').delete();
+    await Link('${dir.path}/default-folder-games.svg').create(outside.path);
     final result = await colorizer.apply('#00FF00');
     expect(result.ok, isTrue);
-    expect(
-        await File('${dir.path}/default-folder-documents.svg').readAsString(),
-        '#ff0000');
+    expect(await File('${dir.path}/other.svg').readAsString(), '#00ff00');
+    expect(await outside.readAsString(), '<svg fill:#ff0000/>');
   });
 
   test('concurrent apply is rejected', () async {
